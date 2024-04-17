@@ -70,7 +70,10 @@ double Matrix::det()
 			throw exception("The matrix must be square");
 
 		//копіювання матриці в triangl_view
-		Matrix triangl_view(*this);
+		Matrix triangl_view(matrix[0].size(), matrix.size());
+		for (size_t i = 0; i < matrix.size(); ++i)
+			for (size_t j = 0; j < matrix[0].size(); ++j)
+				triangl_view.matrix[i][j] = matrix[i][j];
 
 		//зведеня triangl_view до трикутного вигляду
 		for (int i = 0; i < columns; ++i)
@@ -133,7 +136,11 @@ Matrix Matrix::Degree(size_t num)
 {
 	Matrix res(matrix[0].size(), matrix.size());
 
-	Matrix copy(*this);
+	//копіювання матриці в copy
+	Matrix copy(matrix[0].size(), matrix.size());
+	for (size_t i = 0; i < matrix.size(); ++i)
+		for (size_t j = 0; j < matrix[0].size(); ++j)
+			copy.matrix[i][j] = matrix[i][j];
 
 	res = copy;
 	for (int i = 1; i < num; ++i) 
@@ -169,6 +176,12 @@ vector<double> Matrix::CharacteristicPolynomial()
 	//	}
 	//	result.push_back(sum);
 	//}
+
+	//копіювання матриці в copy
+	//Matrix copy(matrix[0].size(), matrix.size());
+	//for (size_t i = 0; i < matrix.size(); ++i)
+	//	for (size_t j = 0; j < matrix[0].size(); ++j)
+	//		copy.matrix[i][j] = matrix[i][j];
 
 	Matrix copy(*this);
 
