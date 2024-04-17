@@ -1,4 +1,4 @@
-#include "Matrix.h"
+п»ї#include "Matrix.h"
 
 Matrix::Matrix() :rows(1),  columns(1), matrix(2, vector<double>(2,0.0)){}
 
@@ -69,17 +69,17 @@ double Matrix::det()
 		if (rows != columns)
 			throw exception("The matrix must be square");
 
-		//копіювання матриці в triangl_view
+		//РєРѕРїС–СЋРІР°РЅРЅСЏ РјР°С‚СЂРёС†С– РІ triangl_view
 		Matrix triangl_view(*this);
 
-		//зведеня triangl_view до трикутного вигляду
+		//Р·РІРµРґРµРЅСЏ triangl_view РґРѕ С‚СЂРёРєСѓС‚РЅРѕРіРѕ РІРёРіР»СЏРґСѓ
 		for (int i = 0; i < columns; ++i)
 			for (int j = i + 1; j < rows; ++j) {
 				double x = (triangl_view.matrix[j][i] / triangl_view.matrix[i][i]);
 				for (int k = i; k < columns; ++k)
 					triangl_view.matrix[j][k] = triangl_view.matrix[j][k] -(triangl_view.matrix[i][k] * x);
 			}
-		//перемноження елементів головної діагоналі
+		//РїРµСЂРµРјРЅРѕР¶РµРЅРЅСЏ РµР»РµРјРµРЅС‚С–РІ РіРѕР»РѕРІРЅРѕС— РґС–Р°РіРѕРЅР°Р»С–
 		double Det = 1;
 		for (short i = 0; i < columns; ++i)
 			Det *= triangl_view.matrix[i][i];
@@ -153,14 +153,14 @@ double Matrix::Trace_of_matrix()
 
 vector<double> Matrix::CharacteristicPolynomial()
 {
-	////цикл розмірності
+	////С†РёРєР» СЂРѕР·РјС–СЂРЅРѕСЃС‚С–
 	//for (int i = 0; i < matrix.size(); ++i) {
 	//	double sum{};
-	//	//цикл мінорів
+	//	//С†РёРєР» РјС–РЅРѕСЂС–РІ
 	//	for (int ii = 0; ii <= i; ++ii) {
 	//		Matrix minor(matrix.size() - i, matrix.size() - i);
 	//
-	//		//цикли копіювання
+	//		//С†РёРєР»Рё РєРѕРїС–СЋРІР°РЅРЅСЏ
 	//		for (int j = 0; j < minor.Columns(); ++j)
 	//			for (int k = 0; k < minor.Rows(); ++k) 
 	//				minor.matrix[j][k] = matrix[j + ii][k + ii];

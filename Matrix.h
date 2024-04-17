@@ -1,4 +1,4 @@
-#pragma once
+п»ї#pragma once
 #include <iostream>
 #include <string>
 #include <vector>
@@ -31,9 +31,9 @@ public:
 	static Matrix IdentityMatrix(size_t dimension);
 	static Matrix mult_by_elment(Matrix A, Matrix B);
 
-	//повертає число за координатами
+	//РїРѕРІРµСЂС‚Р°С” С‡РёСЃР»Рѕ Р·Р° РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё
 	double get(int row, int col);
-	//заміна числа матриці за координатами на вказане число
+	//Р·Р°РјС–РЅР° С‡РёСЃР»Р° РјР°С‚СЂРёС†С– Р·Р° РєРѕРѕСЂРґРёРЅР°С‚Р°РјРё РЅР° РІРєР°Р·Р°РЅРµ С‡РёСЃР»Рѕ
 	Matrix rep(int row, int col, double replacement);
 
 	Matrix operator+(Matrix& other)const;
