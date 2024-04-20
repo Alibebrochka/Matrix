@@ -22,7 +22,7 @@ public:
 	size_t Columns() const;
 	size_t size(size_t dim) const;
 	Matrix T();
-	double det();
+	double det() const;
 	Matrix inv();
 	Matrix Degree(size_t num);
 	double Trace_of_matrix();

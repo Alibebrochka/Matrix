@@ -5,42 +5,25 @@
 void Neural_Network_Learning();
 void Nonlinear_Equations();
 void linear_Equations();
+void Finding_eigenvalues();
 
 int main() {
 	cout << "\033[92m";
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
-	//for (int x = 0; x <= 2; ++x)
-	//	cout << exp(x) - 2 << endl;
 
-	Matrix A(3, 3, {
-		{1, 1, 1 },
-		{1, 3, 1 },
-		{1, 1, 10} }),
-		B(5, 5, {
-			{ 1 , 1 , 1 , 2 , 3 } ,
-			{ 5 , 8 , 7 , 1 , 9 } ,
-			{ 2 , 6 , 7 , 9 , 5 } ,
-			{ 6 , 8 , 6 , 4 , 1 } ,
-			{ 6 , 8 , 5 , 2 , 9 }
-			}),
-		C(4, 4, {
-			{ 1 , 1 , 1 , 2 } ,
-			{ 5 , 8 , 7 , 1 } ,
-			{ 2 , 6 , 7 , 9 } ,
-			{ 6 , 8 , 6 , 4 } }),
-			D(4, 4, {
-				{ 8 , 7 , 1 , 9 } ,
-				{ 6 , 7 , 9 , 5 } ,
-				{ 8 , 6 , 4 , 1 } ,
-				{ 8 , 5 , 2 , 9 } }),
-				E(3, 3, {
-					{2, 1   , 1},
-					{1, 2.5 , 1},
-					{1, 1   , 3} });
-
-	for (auto& x : A.CharacteristicPolynomial())
-		cout << x << endl;
+	Finding_eigenvalues();
+	//for (int x = 0; x <= 2; ++x) 
+		//cout << exp(x) - exp(-x) - 2 << endl;
+	//const double a = 0.5, b = 1.5;
+	//double x = a, Fa{}, Fb{};
+	//
+	//Fa = (pow(x, 3) - 2 * x) * (x + 1);
+	//x = b;
+	//Fb = (pow(x, 3) - 2 * x)* (x + 1);
+	//
+	//cout << "Fa = " << Fa << '\n' << "Fb = " << Fb << endl;
+	//cout << 0.1e-2;
 	//Matrix A(3, 3, { 
 	//	{1,    0,       0      },
 	//	{0,    3,       sqrt(5)},
@@ -51,10 +34,6 @@ int main() {
 	//A = A - B;
 	//cout << A << endl;
 	//cout << A.det() << endl;
-
-	//Neural_Network_Learning();
-	//Nonlinear_Equations();
-	//linear_Equations();
 	return 0;
 }
 
@@ -257,4 +236,28 @@ void linear_Equations()
 	cout << X1 << endl;
 
 	cout << fixed << A * A1 << endl;
+}
+
+void Finding_eigenvalues()
+{
+	Matrix A(3, 3, {
+		{1, 1, 1 },
+		{1, 3, 1 },
+		{1, 1, 10} }),
+		B(5, 5, {
+			{ 1 , 1 , 1 , 2 , 3 } ,
+			{ 5 , 8 , 7 , 1 , 9 } ,
+			{ 2 , 6 , 7 , 9 , 5 } ,
+			{ 6 , 8 , 6 , 4 , 1 } ,
+			{ 6 , 8 , 5 , 2 , 9 }
+			}),
+		E(3, 3, {
+			{1,-3,4},
+			{4,-7,8},
+			{6,-7,7} });
+
+	for (auto& x : B.CharacteristicPolynomial())
+		cout << x << endl;
+	Matrix I = Matrix::IdentityMatrix(B.Rows()) * 3;
+	cout << I << endl;
 }

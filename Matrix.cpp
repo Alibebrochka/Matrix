@@ -63,15 +63,13 @@ Matrix Matrix::T()
 
 }
 
-double Matrix::det()
+double Matrix::det() const
 {
 	try {
 		if (rows != columns)
 			throw exception("The matrix must be square");
-
 		//копіювання матриці в triangl_view
 		Matrix triangl_view(*this);
-
 		//зведеня triangl_view до трикутного вигляду
 		for (int i = 0; i < columns; ++i)
 			for (int j = i + 1; j < rows; ++j) {
@@ -102,6 +100,7 @@ Matrix Matrix::inv()
 		if (rows == 1)
 			return *this;
 		else {
+
 			Matrix res(rows, columns);
 			Matrix subm(rows - 1, columns - 1);
 			for (size_t i = 0; i < rows; ++i) {
@@ -134,7 +133,6 @@ Matrix Matrix::Degree(size_t num)
 	Matrix res(matrix[0].size(), matrix.size());
 
 	Matrix copy(*this);
-
 	res = copy;
 	for (int i = 1; i < num; ++i) 
 		res = res * copy;
@@ -152,26 +150,9 @@ double Matrix::Trace_of_matrix()
 }
 
 vector<double> Matrix::CharacteristicPolynomial()
-{
-	////цикл розмірності
-	//for (int i = 0; i < matrix.size(); ++i) {
-	//	double sum{};
-	//	//цикл мінорів
-	//	for (int ii = 0; ii <= i; ++ii) {
-	//		Matrix minor(matrix.size() - i, matrix.size() - i);
-	//
-	//		//цикли копіювання
-	//		for (int j = 0; j < minor.Columns(); ++j)
-	//			for (int k = 0; k < minor.Rows(); ++k) 
-	//				minor.matrix[j][k] = matrix[j + ii][k + ii];
-	//
-	//		sum += minor.det();
-	//	}
-	//	result.push_back(sum);
-	//}
-
+{ 
+	// метод Леверье
 	Matrix copy(*this);
-
 	vector<double> result{};
 	result.push_back(0);
 	for (size_t i = 1; i < matrix.size() + 1; ++i) {
@@ -180,7 +161,7 @@ vector<double> Matrix::CharacteristicPolynomial()
 			differences -= (result[j] * copy.Degree(i - j).Trace_of_matrix());
 		result.push_back((1.0 / i) * (differences));
 	}
-
+	result[0] = 1;
 	return result;
 }
 
