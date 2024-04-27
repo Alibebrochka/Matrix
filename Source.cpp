@@ -13,6 +13,7 @@ int main() {
 	SetConsoleOutputCP(1251);
 
 	Finding_eigenvalues();
+	
 	//for (int x = 0; x <= 2; ++x) 
 		//cout << exp(x) - exp(-x) - 2 << endl;
 	//const double a = 0.5, b = 1.5;
@@ -41,8 +42,8 @@ void Neural_Network_Learning()
 {
 	auto sigmoid = [](Matrix* A) {
 		Matrix& temp = *A;
-		for (int i = 0; i < A->Rows(); ++i)
-			for (int j = 0; j < A->Columns(); ++j)
+		for (size_t i = 0; i < A->Rows(); ++i)
+			for (size_t j = 0; j < A->Columns(); ++j)
 				temp = A->rep(i, j, 1 / (1 + exp((A->get(i, j)) * (-1))));
 		return A;
 		};
@@ -251,13 +252,20 @@ void Finding_eigenvalues()
 			{ 6 , 8 , 6 , 4 , 1 } ,
 			{ 6 , 8 , 5 , 2 , 9 }
 			}),
-		E(3, 3, {
-			{1,-3,4},
-			{4,-7,8},
-			{6,-7,7} });
+		C(3, 3, {
+			{5,-2,1},
+			{3,-2,3},
+			{3,-6,7} }),
+			E(3, 3, {
+				{1,4,3},
+				{4,5,4},
+				{3,4,1} });
+	/*Matrix I = Matrix::IdentityMatrix(C.Rows());
 
-	for (auto& x : B.CharacteristicPolynomial())
-		cout << x << endl;
-	Matrix I = Matrix::IdentityMatrix(B.Rows()) * 3;
-	cout << I << endl;
+	for (auto& x : C.CharacteristicPolynomial()) {
+		Matrix Ix = I * x;
+		cout << (C - Ix).det() << endl;
+	}*/
+	E.Eigenvalues();
+
 }

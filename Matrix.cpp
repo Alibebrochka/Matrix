@@ -14,8 +14,8 @@ Matrix::Matrix(size_t m_rows, size_t m_columns, initializer_list<initializer_lis
 	rows = m_rows;
 	columns = m_columns;
 	matrix = vector<vector<double> >(rows, vector<double>(columns, fill));
-	for (int i = 0; i < rows; i++) {
-		int j = 0;
+	for (size_t i = 0; i < rows; i++) {
+		size_t j = 0;
 		for (double x : *(element.begin() + i)) {
 			matrix[i][j] = x;
 			j++; 
@@ -71,15 +71,15 @@ double Matrix::det() const
 		//копіювання матриці в triangl_view
 		Matrix triangl_view(*this);
 		//зведеня triangl_view до трикутного вигляду
-		for (int i = 0; i < columns; ++i)
-			for (int j = i + 1; j < rows; ++j) {
+		for (size_t  i = 0; i < columns; ++i)
+			for (size_t  j = i + 1; j < rows; ++j) {
 				double x = (triangl_view.matrix[j][i] / triangl_view.matrix[i][i]);
-				for (int k = i; k < columns; ++k)
+				for (size_t  k = i; k < columns; ++k)
 					triangl_view.matrix[j][k] = triangl_view.matrix[j][k] -(triangl_view.matrix[i][k] * x);
 			}
 		//перемноження елементів головної діагоналі
 		double Det = 1;
-		for (short i = 0; i < columns; ++i)
+		for (size_t i = 0; i < columns; ++i)
 			Det *= triangl_view.matrix[i][i];
 		return Det;
 	}
@@ -134,7 +134,7 @@ Matrix Matrix::Degree(size_t num)
 
 	Matrix copy(*this);
 	res = copy;
-	for (int i = 1; i < num; ++i) 
+	for (size_t i = 1; i < num; ++i)
 		res = res * copy;
 
 	return res;
@@ -143,7 +143,7 @@ Matrix Matrix::Degree(size_t num)
 double Matrix::Trace_of_matrix()
 {
 	double trace_of_matrix{};
-	for (int i = 0; i < matrix.size(); ++i)
+	for (size_t i = 0; i < matrix.size(); ++i)
 		trace_of_matrix += matrix[i][i];
 
 	return trace_of_matrix;
@@ -151,7 +151,6 @@ double Matrix::Trace_of_matrix()
 
 vector<double> Matrix::CharacteristicPolynomial()
 { 
-	// метод Леверье
 	Matrix copy(*this);
 	vector<double> result{};
 	result.push_back(0);
@@ -165,6 +164,66 @@ vector<double> Matrix::CharacteristicPolynomial()
 	return result;
 }
 
+void Matrix::Eigenvalues()
+{
+	auto sgn = [](double a) { return a > 0 ? 1 : a < 0 ? -1 : 0; };
+	try {
+		Matrix A(*this), B = A;
+		if (!(A.T() == A))throw exception("Matrix must be symmetric");
+
+		double p{}, q{}, s{}, r{}, d{}, c{};
+
+		for (int it = 0; it < 100; ++it) {
+			size_t  i{ 1 }, j{ 0 };
+			double max_elem = A.get(1, 0);
+			//Знаходження максимального внедіагонального елемента
+			for (size_t  ii = 0; ii < A.Rows(); ++ii)
+				for (size_t  jj = 0; jj < A.Columns(); ++jj)
+					if (ii != jj)
+						if (max_elem < A.get(ii, jj)) {
+							i = ii;
+							j = jj;
+							max_elem = A.get(ii, jj);
+						}
+
+			p = 2 * A.get(i, j);
+			q = A.get(i, i) - A.get(j, j);
+			d = sqrt(pow(p, 2) + pow(q, 2));
+			if (q != 0) {
+				r = abs(q) / (2 * d);
+				c = sqrt(0.5 + r);
+				s = sqrt(0.5 - r) * sgn(p * q);
+			}
+			else
+				c = s = (sqrt(2) / 2);
+			//елементи нової матриці
+			B = B.rep(i, i, (pow(c, 2) * A.get(i, i)) +(pow(s, 2) * A.get(j, j)) + (2 * c * s * A.get(i, j)));
+			B = B.rep(j, j, (pow(s, 2) * A.get(i, i)) +(pow(c, 2) * A.get(j, j)) - (2 * c * s * A.get(i, j)));
+			B = B.rep(i, j, 0);
+			B = B.rep(j, i, 0);
+			//5. При m = 1, 2, ...,n таких, що m != i, m != j, обчислюють
+			//	змінювані позадіагональні елементи
+			for (size_t  m = 0; m < A.matrix.size(); ++m)
+				if (m != i && m != j) {
+					double pos_dig_elem_1 = (c * A.get(m, i)) + (s * A.get(m, j));
+					double pos_dig_elem_2 = (-s * A.get(m, i)) + (c * A.get(m, j));
+					B = B.rep(i, m, pos_dig_elem_1);
+					B = B.rep(m, i, pos_dig_elem_1);
+					B = B.rep(j, m, pos_dig_elem_2);
+					B = B.rep(m, j, pos_dig_elem_2);
+				}
+
+			cout << B << endl;
+			//оновлення
+			A = B;
+		}
+	}
+	catch (exception & e) {
+		cout << e.what() << endl;
+		exit(EXIT_FAILURE);
+	}
+}
+
 Matrix Matrix::IdentityMatrix(size_t dimension)
 {
 	Matrix identity_matrix(dimension, dimension);
@@ -175,8 +234,8 @@ Matrix Matrix::IdentityMatrix(size_t dimension)
 
 Matrix Matrix::mult_by_elment(Matrix A, Matrix B)
 {
-	for (int i = 0; i < A.Rows(); ++i)
-		for (int j = 0; j < A.Columns(); ++j)
+	for (size_t  i = 0; i < A.Rows(); ++i)
+		for (size_t  j = 0; j < A.Columns(); ++j)
 			A = A.rep(i, j, A.get(i, j) * B.get(i, j));
 	return A;
 }
@@ -199,7 +258,7 @@ std::ostream& operator<<(std::ostream& out, const Matrix& m)
 	return out;
 }
 
-double Matrix::get(int row, int col)
+double Matrix::get(size_t  row, size_t  col)
 {
 	try {
 		if (row > rows || col > columns)
@@ -212,20 +271,13 @@ double Matrix::get(int row, int col)
 	}
 }
 
-Matrix Matrix::rep(int row, int col, double replacement)
+Matrix Matrix::rep(size_t  row, size_t  col, double replacement) const
 {
 	try {
 		if (row > rows || col > columns)
 			throw exception("Going beyond the scope of the array");
-		Matrix result(rows, columns);
-		for (int i = 0; i < rows; ++i) {
-			for (int j = 0; j < columns; ++j) {
-				if (i == row && j == col)
-					result.matrix[i][j] = replacement;
-				else
-					result.matrix[i][j] = matrix[i][j];
-			}
-		}
+		Matrix result(*this);
+		result.matrix[row][col] = replacement;
 		return result;
 	}
 	catch (exception& e) {
@@ -254,8 +306,8 @@ Matrix Matrix::operator+(Matrix& other) const
 Matrix Matrix::operator+(const double& num)
 {
 	Matrix result(rows, columns);
-	for (int i = 0; i < rows; ++i)
-		for (int j = 0; j < columns; ++j)
+	for (size_t  i = 0; i < rows; ++i)
+		for (size_t  j = 0; j < columns; ++j)
 			result.matrix[i][j] = matrix[i][j] + num;
 	return result;
 }
@@ -280,8 +332,8 @@ Matrix Matrix::operator-(Matrix& other) const
 Matrix Matrix::operator-(const double& num)
 {
 	Matrix result(rows, columns);
-	for (int i = 0; i < rows; ++i)
-		for (int j = 0; j < columns; ++j)
+	for (size_t  i = 0; i < rows; ++i)
+		for (size_t  j = 0; j < columns; ++j)
 			result.matrix[i][j] = matrix[i][j] - num;
 	return result;
 }
@@ -289,8 +341,7 @@ Matrix Matrix::operator-(const double& num)
 Matrix Matrix::operator*(Matrix& other) const
 {
 	try {
-		if (columns != other.rows)
-			throw exception("Dimension must be 1 or 2!");
+		if (columns != other.rows) throw exception("Dimension must be 1 or 2!");
 		Matrix result(rows, other.columns);
 		for (size_t i = 0; i < rows; ++i)
 			for (size_t j = 0; j < other.columns; ++j)
@@ -307,8 +358,8 @@ Matrix Matrix::operator*(Matrix& other) const
 Matrix Matrix::operator*(const double& num)
 {
 	Matrix result(rows, columns);
-	for (int i = 0; i < rows; ++i)
-		for (int j = 0; j < columns; ++j)
+	for (size_t  i = 0; i < rows; ++i)
+		for (size_t  j = 0; j < columns; ++j)
 			result.matrix[i][j] = matrix[i][j] * num;
 	return result;
 }
@@ -322,6 +373,23 @@ Matrix Matrix::operator/(const double& scalar)
 			for (size_t j = 0; j < columns; ++j)
 				result.matrix[i][j] = matrix[i][j] / scalar;
 		return result;
+	}
+	catch (exception& e) {
+		cout << e.what() << endl;
+		exit(EXIT_FAILURE);
+	}
+}
+
+bool Matrix::operator==(Matrix& other) const
+{
+	try {
+		if (rows != other.rows) throw exception("Size must be the same");
+		if (columns != other.columns) throw exception("Size must be the same");
+		for (size_t  i = 0; i < matrix.size(); ++i)
+			for (size_t  j = 0; j < matrix.size(); ++j)
+				if (matrix[i][j] != other.matrix[i][j])
+					return false;
+		return true;
 	}
 	catch (exception& e) {
 		cout << e.what() << endl;
