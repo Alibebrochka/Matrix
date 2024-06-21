@@ -1,5 +1,26 @@
 ﻿#include "Matrix.h"
 
+void Matrix::LU_Schedule(Matrix A)
+{
+	Matrix t_L(A.rows, A.columns);
+	Matrix t_U = Matrix::IdentityMatrix(A.matrix.size());
+	L = t_L.matrix;
+	U = t_U.matrix;
+	for (int i = 0; i < A.matrix.size(); ++i)
+		for (int j = 0; j < A.matrix.size(); ++j) {
+			if (i >= j) {
+				for (int k = 0; k <= (j ? j - 1 : 0); ++k)
+					L[i][j] += L[i][k] * U[k][j];
+				L[i][j] = A.matrix[i][j] - L[i][j];
+			}
+			if (i < j) {
+				for (int k = 0; k <= (i ? i - 1 : 0); ++k)
+					U[i][j] += L[i][k] * U[k][j];
+				U[i][j] = (A.matrix[i][j] - U[i][j]) * (1 / L[i][i]);
+			}
+		}
+}
+
 Matrix::Matrix() :rows(1),  columns(1), matrix(2, vector<double>(2,0.0)){}
 
 Matrix::Matrix(size_t m_rows, size_t m_columns, double fill)
@@ -7,6 +28,8 @@ Matrix::Matrix(size_t m_rows, size_t m_columns, double fill)
 	rows = m_rows;
 	columns = m_columns;
 	matrix = vector<vector<double> >(rows, vector<double>(columns, fill));
+	L = matrix;
+	U = matrix;
 }
 
 Matrix::Matrix(size_t m_rows, size_t m_columns, initializer_list<initializer_list<double>> element, double fill)
@@ -20,6 +43,17 @@ Matrix::Matrix(size_t m_rows, size_t m_columns, initializer_list<initializer_lis
 			matrix[i][j] = x;
 			j++; 
 		}
+	}
+}
+
+Matrix::Matrix( vector<vector<double>> m)
+{
+	rows = m.size();
+	columns = m.size();
+	matrix = vector<vector<double> >(rows, vector<double>(columns, 0));
+	for (int i = 0; i < m.size(); ++i) {
+		for (int j = 0; j < m.size(); ++j)
+			matrix[i][j] = m[i][j];
 	}
 }
 
@@ -45,7 +79,7 @@ size_t Matrix::size(size_t dim) const
 	}
 }
 
-Matrix Matrix::T()
+Matrix Matrix::T() 
 {
 	try {
 		if (rows != columns)
@@ -164,64 +198,97 @@ vector<double> Matrix::CharacteristicPolynomial()
 	return result;
 }
 
-void Matrix::Eigenvalues()
+Matrix Matrix::Eigenvalues(EMethods_For_Resolving_Eigenvalues egvalues)
 {
 	auto sgn = [](double a) { return a > 0 ? 1 : a < 0 ? -1 : 0; };
-	try {
-		Matrix A(*this), B = A;
-		if (!(A.T() == A))throw exception("Matrix must be symmetric");
+	switch (egvalues)
+	{
+	case EMFRE_Jacobi:
+		try {
+			Matrix A(*this), B = A;
+			if (!(A.T() == A))throw exception("Matrix must be symmetric");
 
-		double p{}, q{}, s{}, r{}, d{}, c{};
+			double p{}, q{}, s{}, r{}, d{}, c{};
 
-		for (int it = 0; it < 100; ++it) {
-			size_t  i{ 1 }, j{ 0 };
-			double max_elem = A.get(1, 0);
-			//Знаходження максимального внедіагонального елемента
-			for (size_t  ii = 0; ii < A.Rows(); ++ii)
-				for (size_t  jj = 0; jj < A.Columns(); ++jj)
-					if (ii != jj)
-						if (max_elem < A.get(ii, jj)) {
-							i = ii;
-							j = jj;
-							max_elem = A.get(ii, jj);
-						}
+			for (int it = 0; it < 100; ++it) {
+				size_t  i = 1, j = 0;
+				double max_elem = A.get(1, 0);
+				//Знаходження максимального внедіагонального елемента
+				for (size_t ii = 0; ii < A.Rows(); ++ii)
+					for (size_t jj = 0; jj < A.Columns(); ++jj)
+						if (ii != jj)
+							if (max_elem < A.get(ii, jj)) {
+								i = ii;
+								j = jj;
+								max_elem = A.get(ii, jj);
+							}
 
-			p = 2 * A.get(i, j);
-			q = A.get(i, i) - A.get(j, j);
-			d = sqrt(pow(p, 2) + pow(q, 2));
-			if (q != 0) {
-				r = abs(q) / (2 * d);
-				c = sqrt(0.5 + r);
-				s = sqrt(0.5 - r) * sgn(p * q);
-			}
-			else
-				c = s = (sqrt(2) / 2);
-			//елементи нової матриці
-			B = B.rep(i, i, (pow(c, 2) * A.get(i, i)) +(pow(s, 2) * A.get(j, j)) + (2 * c * s * A.get(i, j)));
-			B = B.rep(j, j, (pow(s, 2) * A.get(i, i)) +(pow(c, 2) * A.get(j, j)) - (2 * c * s * A.get(i, j)));
-			B = B.rep(i, j, 0);
-			B = B.rep(j, i, 0);
-			//5. При m = 1, 2, ...,n таких, що m != i, m != j, обчислюють
-			//	змінювані позадіагональні елементи
-			for (size_t  m = 0; m < A.matrix.size(); ++m)
-				if (m != i && m != j) {
-					double pos_dig_elem_1 = (c * A.get(m, i)) + (s * A.get(m, j));
-					double pos_dig_elem_2 = (-s * A.get(m, i)) + (c * A.get(m, j));
-					B = B.rep(i, m, pos_dig_elem_1);
-					B = B.rep(m, i, pos_dig_elem_1);
-					B = B.rep(j, m, pos_dig_elem_2);
-					B = B.rep(m, j, pos_dig_elem_2);
+				p = 2 * A.get(i, j);
+				q = A.get(i, i) - A.get(j, j);
+				d = sqrt(pow(p, 2) + pow(q, 2));
+
+				if (q != 0) {
+					r = abs(q) / (2 * d);
+					c = sqrt(0.5 + r);
+					s = sqrt(0.5 - r) * sgn(p * q);
 				}
+				else
+					c = s = (sqrt(2) / 2);
 
-			cout << B << endl;
-			//оновлення
-			A = B;
+				//елементи нової матриці
+				B.matrix[i][i] = (pow(c, 2) * A.get(i, i)) + (pow(s, 2) * A.get(j, j)) + (2 * c * s * A.get(i, j));
+				B.matrix[j][j] = (pow(s, 2) * A.get(i, i)) + (pow(c, 2) * A.get(j, j)) - (2 * c * s * A.get(i, j));
+				B.matrix[i][j] = B.matrix[j][i] = (pow(c, 2) - pow(s, 2)) * A.get(1, j) + c * s * (A.get(j, j) - A.get(i, i));
+				// змінювані позадіагональні елементи
+				for (size_t m = 0; m < A.matrix.size(); ++m)
+					if (m != i && m != j) {
+						B.matrix[i][m] = B.matrix[m][i] = (c * A.get(m, i)) + (s * A.get(m, j));
+						B.matrix[j][m] = B.matrix[m][j] = (-s * A.get(m, i)) + (c * A.get(m, j));
+					}
+
+				double fin{};
+				for (int ii = 0; ii < A.matrix.size(); ++ii)
+					fin += pow(A.matrix[ii][ii] - B.matrix[ii][ii], 2);
+				double f = sqrt(fin);
+
+				//оновлення
+				A = B;
+
+				//cout << fixed << A << endl;
+				if (f == 0)
+					return A;
+			}
+		}
+		catch (exception& e) {
+			cout << e.what() << endl;
+			exit(EXIT_FAILURE);
+		}
+		break;
+	case EMFRE_LU:
+		LU_Schedule(*this);
+		Matrix AL(L), AU(U);
+		for (int i = 1;; ++i) {
+			LU_Schedule(AU*AL);
+			Matrix mL(L), mU(U);
+			if ((abs((mL * mU).matrix[1][1] - (AL * AU).matrix[1][1])) < 0.1) {
+				cout << "iteration:\t" << i << endl;
+				return  AU * AL;
+			}
+			AL = L;
+			AU = U;
 		}
 	}
-	catch (exception & e) {
-		cout << e.what() << endl;
-		exit(EXIT_FAILURE);
-	}
+	return Matrix();
+}
+
+const vector<vector<double>>& Matrix::GetL() const
+{
+	return L;
+}
+
+const vector<vector<double>>& Matrix::GetU() const
+{
+	return U;
 }
 
 Matrix Matrix::IdentityMatrix(size_t dimension)
@@ -286,15 +353,15 @@ Matrix Matrix::rep(size_t  row, size_t  col, double replacement) const
 	}
 }
 
-Matrix Matrix::operator+(Matrix& other) const
+Matrix operator+(const Matrix& m1, const Matrix& m2) 
 {
 	try {
-		if (rows != other.rows || columns != other.columns)
+		if (m2.rows != m1.rows || m2.columns != m1.columns)
 			throw exception("Matrix dimensions do not match for addition");
-		Matrix result(rows, columns);
-		for (size_t i = 0; i < rows; ++i)
-			for (size_t j = 0; j < columns; ++j)
-				result.matrix[i][j] = matrix[i][j] + other.matrix[i][j];
+		Matrix result(m2.rows, m2.columns);
+		for (size_t i = 0; i < m2.rows; ++i)
+			for (size_t j = 0; j < m2.columns; ++j)
+				result.matrix[i][j] = m2.matrix[i][j] + m1.matrix[i][j];
 		return result;
 	}
 	catch (exception& e) {
@@ -312,15 +379,15 @@ Matrix Matrix::operator+(const double& num)
 	return result;
 }
 
-Matrix Matrix::operator-(Matrix& other) const
+Matrix operator-(const Matrix& m1, const Matrix& m2)
 {
 	try {
-		if (rows != other.rows||columns !=other.columns)
+		if (m2.rows != m1.rows|| m2.columns !=m1.columns)
 			throw exception("Matrix dimensions do not match for subtraction");
-		Matrix result(rows, columns);
-		for (size_t i = 0; i < rows; ++i)
-			for (size_t j = 0; j < columns; ++j)
-				result.matrix[i][j] = matrix[i][j] - other.matrix[i][j];
+		Matrix result(m2.rows, m2.columns);
+		for (size_t i = 0; i < m2.rows; ++i)
+			for (size_t j = 0; j < m2.columns; ++j)
+				result.matrix[i][j] = m2.matrix[i][j] - m1.matrix[i][j];
 		return result;
 	}
 	catch (exception& e) {
@@ -338,15 +405,15 @@ Matrix Matrix::operator-(const double& num)
 	return result;
 }
 
-Matrix Matrix::operator*(Matrix& other) const
+Matrix operator*(const Matrix& m1,const Matrix& m2) 
 {
 	try {
-		if (columns != other.rows) throw exception("Dimension must be 1 or 2!");
-		Matrix result(rows, other.columns);
-		for (size_t i = 0; i < rows; ++i)
-			for (size_t j = 0; j < other.columns; ++j)
-				for (size_t k = 0; k < columns; ++k)
-					result.matrix[i][j] += matrix[i][k] * other.matrix[k][j];
+		if (m1.columns != m2.rows) throw exception("Dimension must be 1 or 2!");
+		Matrix result(m1.rows, m2.columns);
+		for (size_t i = 0; i < m1.rows; ++i)
+			for (size_t j = 0; j < m2.columns; ++j)
+				for (size_t k = 0; k < m1.columns; ++k)
+					result.matrix[i][j] += m1.matrix[i][k] * m2.matrix[k][j];
 		return result;
 	}
 	catch (exception& e) {
@@ -380,14 +447,14 @@ Matrix Matrix::operator/(const double& scalar)
 	}
 }
 
-bool Matrix::operator==(Matrix& other) const
+bool operator==(const Matrix& m1, const Matrix& m2) 
 {
 	try {
-		if (rows != other.rows) throw exception("Size must be the same");
-		if (columns != other.columns) throw exception("Size must be the same");
-		for (size_t  i = 0; i < matrix.size(); ++i)
-			for (size_t  j = 0; j < matrix.size(); ++j)
-				if (matrix[i][j] != other.matrix[i][j])
+		if (m2.rows != m1.rows) throw exception("Size must be the same");
+		if (m2.columns != m1.columns) throw exception("Size must be the same");
+		for (size_t  i = 0; i < m2.matrix.size(); ++i)
+			for (size_t  j = 0; j < m2.matrix.size(); ++j)
+				if (m2.matrix[i][j] != m1.matrix[i][j])
 					return false;
 		return true;
 	}

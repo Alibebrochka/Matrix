@@ -12,8 +12,16 @@ int main() {
 	SetConsoleCP(1251);
 	SetConsoleOutputCP(1251);
 
-	Finding_eigenvalues();
-	
+	Matrix A(3, 3, {
+		{5, 1,  2},
+		{5, 4,  3},
+		{2, 1,  3}}),
+		B(4, 4, {
+			{1,5,3,-4},
+			{3,1,-2,0},
+			{5,-7,0,10},
+			{0,3,-5,0}});
+	cout << "fin:\n" << A.Eigenvalues(EMFRE_LU);
 	//for (int x = 0; x <= 2; ++x) 
 		//cout << exp(x) - exp(-x) - 2 << endl;
 	//const double a = 0.5, b = 1.5;
@@ -213,30 +221,30 @@ void Nonlinear_Equations() {
 }
 void linear_Equations()
 {
-	Matrix A (4, 4, { 
-		{9.5, 7.3,-5.2, 2.5},
-		{8.8, 8.4, 8.7,-5.3},
-		{4.0, 8.8, 9.9, 3.0},
-		{7.3,-8.5, 5.9, 8.5} }),
-		B(4, 1, { 
-			{5.1},
-			{7.0},
-			{3.1},
-			{7.8} });
-
-	cout << A;
-	cout << A.det() << endl;
+	Matrix A(4, 4, {
+		{ 33, 10,-10, 55},
+		{-21, 5,  88,-15},
+		{ 13, 31,-18, 52},
+		{ 13, 17, 51, 22} }),
+		B(4, 1, {
+			{-12},
+			{29},
+			{66},
+			{-19} });
+	cout << "A:\n" << A;
+	cout << "A.det(): " << A.det() << endl;
+	cout << "B:\n" << B << endl;
 
 	Matrix A1 = A.inv();
-	cout << A1 << endl;
+	cout << "A1:\n" << A1 << endl;
 
-	Matrix X = A1 * B;
-	cout << X << endl;
+	Matrix X = A1 * B ;
+	cout <<"X:\n" << X << endl;
 
 	Matrix X1 = A * X;
-	cout << X1 << endl;
+	cout << "X1:\n" << X1 << endl;
 
-	cout << fixed << A * A1 << endl;
+	cout << "A * A1:\n" << fixed << A * A1 << endl;
 }
 
 void Finding_eigenvalues()
@@ -244,28 +252,112 @@ void Finding_eigenvalues()
 	Matrix A(3, 3, {
 		{1, 1, 1 },
 		{1, 3, 1 },
-		{1, 1, 10} }),
-		B(5, 5, {
-			{ 1 , 1 , 1 , 2 , 3 } ,
-			{ 5 , 8 , 7 , 1 , 9 } ,
-			{ 2 , 6 , 7 , 9 , 5 } ,
-			{ 6 , 8 , 6 , 4 , 1 } ,
-			{ 6 , 8 , 5 , 2 , 9 }
+		{1, 1, 10} 
+		}),
+		B_pro(5, 5, {
+			{ 1, 1, 1, 2, 3 } ,
+			{ 5, 8, 7, 1, 9 } ,
+			{ 2, 6, 7, 9, 5 } ,
+			{ 6, 8, 6, 4, 1 } ,
+			{ 6, 8, 5, 2, 9 }
 			}),
 		C(3, 3, {
-			{5,-2,1},
-			{3,-2,3},
-			{3,-6,7} }),
+			{ 5, -2, 1 } ,
+			{ 3, -2, 3 } ,
+			{ 3, -6, 7 } 
+			}),
 			E(3, 3, {
-				{1,4,3},
-				{4,5,4},
-				{3,4,1} });
-	/*Matrix I = Matrix::IdentityMatrix(C.Rows());
+				{ 1, 4, 3 } ,
+				{ 4, 5, 4 } ,
+				{ 3, 4, 1 } 
+				}),
+				M_LU0(3, 3, {
+					{ 1, 2, 3 } ,
+					{ 4, 2, 1 } ,
+					{ 5, 2, 2 } 
+					}),
+					M_LU1(2, 2, {
+						{ 1, 5 } ,
+						{ 4, 2 } 
+						}),
+						D(6, 6, {
+							{ 1, 1, 1, 1, 1, 5 } ,
+							{ 1, 5, 1, 1, 1, 1 } ,
+							{ 1, 1, 3, 1, 1, 1 } ,
+							{ 1, 1, 1, 7, 1, 1 } , 
+							{ 1, 1, 1, 1, 5, 1 } , 
+							{ 5, 1, 1, 1, 1, 10 
+							}});
+	cout << "CharacteristicPolynomial:\n";
+	for (auto& x : A.CharacteristicPolynomial())
+		cout << x << endl;
+	cout << endl;
 
-	for (auto& x : C.CharacteristicPolynomial()) {
-		Matrix Ix = I * x;
-		cout << (C - Ix).det() << endl;
-	}*/
-	E.Eigenvalues();
+	cout << "Eigenvalues:\n";
+	Matrix A_egnvls = A.Eigenvalues(EMFRE_Jacobi);
+	for (int i = 0; i < A_egnvls.Columns(); ++i)
+		cout << A_egnvls.get(i, i) << endl;
+	cout << endl;
+
+	cout<<"x9:\n";
+	Matrix A9, A1 = A, x9;
+	for (int i = 0; i < 9; ++i) {
+		A9 = A * A1;
+		A1 = A9;
+	}
+	Matrix X0(3, 1, {
+		{0},
+		{1},
+		{0} });
+	x9 = A9 * X0;
+	cout << x9 << endl;
+	cout << endl;
+
+	cout << "x10:\n";
+	Matrix A10, x10;
+	A1 = A;
+	for (int i = 0; i < 10; ++i) {
+		A10 = A * A1;
+		A1 = A10;
+	}
+	x10 = A10 * X0;
+	cout << x10 << endl;
+	cout << endl;
+
+	cout << "vmax:\n";
+	double vmax{};
+	for (int i = 0; i < 3; ++i) {
+		vmax = x10.get(i, 0) / x9.get(i, 0);
+		cout << vmax << endl;
+	}
+	cout << endl;
+
+	Matrix B = A.inv();
+	cout << "B:\n" << B << endl;
+	cout << endl;
+
+	Matrix B1 = B, B9, B10;
+	for (int i = 0; i < 9; ++i) {
+		B9 = B1 * B;
+		B1 = B9;
+	}
+	for (int i = 0; i < 10; ++i) {
+		B10 = B1 * B;
+		B1 = B10;
+	}
+	Matrix y9, y10;
+	y9 = B9 * X0;
+	cout << "y9:\n" << y9 << endl;
+	y10 = B10 * X0;
+	cout << "y10:\n" << y10 << endl;
+
+	double vmin{};
+	for (int i = 0; i < 3; ++i) {
+		vmin = y9.get(i, 0) / y10.get(i, 0);
+		cout << vmin << endl;
+	}
+	cout << endl;
+
+	cout << "vmidl:\n" << A.det() / (vmin * vmax) << endl;
 
 }
