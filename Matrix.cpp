@@ -1,6 +1,6 @@
 ﻿#include "Matrix.h"
 
-void Matrix::LU_Schedule(Matrix A)
+void Matrix::LU_Decomposition(Matrix A)
 {
 	Matrix t_L(A.rows, A.columns);
 	Matrix t_U = Matrix::IdentityMatrix(A.matrix.size());
@@ -46,14 +46,23 @@ Matrix::Matrix(size_t m_rows, size_t m_columns, initializer_list<initializer_lis
 	}
 }
 
-Matrix::Matrix( vector<vector<double>> m)
+Matrix::Matrix(vector<vector<double>> m)
 {
 	rows = m.size();
 	columns = m.size();
 	matrix = vector<vector<double> >(rows, vector<double>(columns, 0));
-	for (int i = 0; i < m.size(); ++i) {
-		for (int j = 0; j < m.size(); ++j)
+	for (int i = 0; i < columns; ++i) {
+		for (int j = 0; j < rows; ++j)
 			matrix[i][j] = m[i][j];
+	}
+}
+
+Matrix::Matrix(vector<double> m) {
+	rows = 1;
+	columns = m.size();
+	matrix = vector<vector<double>>(rows, vector<double>(columns, 0));
+	for (int i = 0; i < columns; ++i) {
+		matrix[0][i] = m[i];
 	}
 }
 
@@ -183,19 +192,57 @@ double Matrix::Trace_of_matrix()
 	return trace_of_matrix;
 }
 
-vector<double> Matrix::CharacteristicPolynomial()
+Matrix Matrix::SLE(Matrix B, EMethods_For_Resolving_SLE sle)
+{
+	switch (sle)
+	{
+	case EMFRS_Matrix:
+		return (this->inv()) * B;
+		break;
+
+	case EMFRS_LU: {
+		LU_Decomposition(*this);
+
+		vector<double> y{B.matrix[0][0] / L[0][0]};
+		for (size_t i = 1; i < this->columns; ++i) {
+			double sum_y{};
+			for (size_t k = 0; k <= (i ? i - 1 : 0); ++k)
+				sum_y += L[i][k] * y[k];
+			y.push_back((1 / L[i][i]) * (B.matrix[i][0] - sum_y));
+		}
+		
+		vector<double> x = y;
+		for (int i = (int)y.size() - 1; i >= 0; --i) {
+			double sum{};
+			for (int k = (int)y.size() - 1; k > i; --k)
+				sum += U[i][k] * x[k];
+			x[i] = y[i] - sum;
+		}
+		B = x;
+		return B;
+		break;
+
+	}
+	default:
+		return Matrix();
+		break;
+	}
+}
+
+Matrix Matrix::Characteristic_Polynomial()
 { 
-	Matrix copy(*this);
+	//метод Леверьє
 	vector<double> result{};
 	result.push_back(0);
 	for (size_t i = 1; i < matrix.size() + 1; ++i) {
-		double differences = copy.Degree(i).Trace_of_matrix();
+		double differences = this->Degree(i).Trace_of_matrix();
 		for (size_t j = 1; j < i; ++j)
-			differences -= (result[j] * copy.Degree(i - j).Trace_of_matrix());
+			differences -= (result[j] * this->Degree(i - j).Trace_of_matrix());
 		result.push_back((1.0 / i) * (differences));
 	}
 	result[0] = 1;
-	return result;
+	Matrix characteristic_polynomial = result;
+	return characteristic_polynomial;
 }
 
 Matrix Matrix::Eigenvalues(EMethods_For_Resolving_Eigenvalues egvalues)
@@ -264,19 +311,33 @@ Matrix Matrix::Eigenvalues(EMethods_For_Resolving_Eigenvalues egvalues)
 			exit(EXIT_FAILURE);
 		}
 		break;
+
+
 	case EMFRE_LU:
-		LU_Schedule(*this);
-		Matrix AL(L), AU(U);
-		for (int i = 1;; ++i) {
-			LU_Schedule(AU*AL);
-			Matrix mL(L), mU(U);
-			if ((abs((mL * mU).matrix[1][1] - (AL * AU).matrix[1][1])) < 0.1) {
-				cout << "iteration:\t" << i << endl;
-				return  AU * AL;
+		try {
+			if (this->rows != this->columns)throw exception("matrix must be square");
+
+			LU_Decomposition(*this);
+			Matrix AL(L), AU(U);
+			short max_it = 100;
+			for (int i = 1; i < max_it; ++i) {
+
+				LU_Decomposition(AU * AL);
+
+				Matrix mL(L), mU(U);
+				if ((abs((mL * mU).matrix[1][1] - (AL * AU).matrix[1][1])) < 0.1)
+					return  AU * AL;
+				AL = L;
+				AU = U;
 			}
-			AL = L;
-			AU = U;
+			cout << "iteration >\t" << max_it << endl;
+			return  AU * AL;
 		}
+		catch (exception& e) {
+			cout << e.what() << endl;
+			exit(EXIT_FAILURE);
+		}
+		break;
 	}
 	return Matrix();
 }

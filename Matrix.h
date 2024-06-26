@@ -17,21 +17,27 @@ enum EMethods_For_Resolving_Eigenvalues {
 	EMFRE_LU
 };
 
+enum EMethods_For_Resolving_SLE {
+	EMFRS_Matrix = 0,
+	EMFRS_LU
+};
 	
 class Matrix
 {
 	size_t rows;
 	size_t columns;
-	vector<vector<double> >matrix;
+	vector<vector<double>>matrix;
 
-	vector<vector<double> > L;
-	vector<vector<double> > U;
+	vector<vector<double>> L;
+	vector<vector<double>> U;
 public:
 	Matrix();
 	Matrix(size_t m_rows, size_t m_columns, double fill = 0.0);
 	Matrix(size_t m_rows, size_t m_columns, initializer_list<initializer_list<double>> element, double fill = 0.0);
-	Matrix( vector<vector<double> > m);
+	Matrix(vector<vector<double>> m);
+	Matrix(vector<double> m);
 	Matrix(const Matrix& m) = default;
+
 	size_t Rows() const;
 	size_t Columns() const;
 	size_t size(size_t dim) const;
@@ -40,14 +46,22 @@ public:
 	Matrix inv();
 	Matrix Degree(size_t num);
 	double Trace_of_matrix();
-	// метод Леверье
-	vector<double> CharacteristicPolynomial();
 
-	void LU_Schedule(Matrix A);
-	EMethods_For_Resolving_Eigenvalues egvalues{ EMFRE_Jacobi };
-	Matrix Eigenvalues(EMethods_For_Resolving_Eigenvalues egvalues);
+	//рішення СЛАР
+	EMethods_For_Resolving_SLE sle{ EMFRS_Matrix };
+	Matrix SLE(Matrix B, EMethods_For_Resolving_SLE sle);
+
+	// характерестичні рівняння
+	Matrix Characteristic_Polynomial();
+
+	//LU розкладання
+	void LU_Decomposition(Matrix A);
 	const vector<vector<double>>& GetL() const;
 	const vector<vector<double>>& GetU() const;
+
+	//власні значення
+	EMethods_For_Resolving_Eigenvalues egvalues{ EMFRE_Jacobi };
+	Matrix Eigenvalues(EMethods_For_Resolving_Eigenvalues egvalues);
 
 	static Matrix IdentityMatrix(size_t dimension);
 	static Matrix mult_by_elment(Matrix A, Matrix B);
